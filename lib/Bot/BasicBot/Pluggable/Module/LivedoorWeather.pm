@@ -5,7 +5,7 @@ use warnings;
 use WebService::Livedoor::Weather;
 use base qw(Bot::BasicBot::Pluggable::Module);
 
-our $VERSION = '0.01';
+our $VERSION = '0.03';
 
 sub said {
     my ( $self, $mess, $pri ) = @_;
@@ -17,8 +17,18 @@ sub said {
     $command = lc($command);
 
     if ( $command eq "weather" ) {
-        my $weather = $self->_get_weather($param);
-        return $weather->{title} .': ' . $weather->{description};
+        my $message = "";
+        eval {
+            my $weather = $self->_get_weather($param);
+            $message
+                = "\cC14"
+                . $weather->{title} . ": "
+                . $weather->{description};
+        };
+        if($@) {
+            $message = "Can't find such city: " . $param;
+        }
+        $self->reply( $mess, $message );
     }
 }
 
