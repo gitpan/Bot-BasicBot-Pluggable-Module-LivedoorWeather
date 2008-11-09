@@ -4,6 +4,8 @@ all_from 'lib/Bot/BasicBot/Pluggable/Module/LivedoorWeather.pm';
 
 requires 'Bot::BasicBot::Pluggable';
 requires 'WebService::Livedoor::Weather';
+requires 'Jcode';
+requires 'Encode';
 
 build_requires 'Test::More';
 use_test_base;

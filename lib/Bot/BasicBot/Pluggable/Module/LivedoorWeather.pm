@@ -3,9 +3,12 @@ package Bot::BasicBot::Pluggable::Module::LivedoorWeather;
 use strict;
 use warnings;
 use WebService::Livedoor::Weather;
+use Jcode;
+use Encode;
+
 use base qw(Bot::BasicBot::Pluggable::Module);
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 sub said {
     my ( $self, $mess, $pri ) = @_;
@@ -17,19 +20,38 @@ sub said {
     $command = lc($command);
 
     if ( $command eq "weather" ) {
-        my $message = "";
+        my $message;
         eval {
             my $weather = $self->_get_weather($param);
-            $message
-                = "\cC14"
-                . $weather->{title} . ": "
-                . $weather->{description};
+            $message = $self->_create_reply_message($weather);
         };
-        if($@) {
-            $message = "Can't find such city: " . $param;
+        if ($@) {
+            $message = "Can't find a such city: " . $param;
         }
         $self->reply( $mess, $message );
     }
+}
+
+sub trim {
+    my ( $self, $string, $width, $marker ) = @_;
+
+    my $jcode_ins = new Jcode( $string, 'utf8' );
+    $jcode_ins->jfold( $width * 2 );
+    $string = $jcode_ins->utf8;
+
+    if ( $string =~ /\n/ ) {
+        $string = ( split( /\n/, $string ) )[0] . $marker;
+    }
+    Encode::_utf8_on($string) unless Encode::is_utf8($string);
+    $string;
+}
+
+sub _create_reply_message {
+    my ( $self, $weather ) = @_;
+    my $message
+        = "\cC14" . $weather->{description};
+    $message = $self->trim( $message, 45, '...' );
+    $message;
 }
 
 sub _get_weather {
